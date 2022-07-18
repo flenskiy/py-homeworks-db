@@ -6,7 +6,7 @@ WHERE year = 2018;
 SELECT name, duration FROM track
 WHERE duration = (SELECT MAX(duration) FROM track);
 
--- название и продолжительность самого длительного трека;
+-- название треков, продолжительность которых не менее 3,5 минуты;
 SELECT name FROM track
 WHERE duration >= 3.5;
 

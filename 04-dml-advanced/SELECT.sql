@@ -16,21 +16,22 @@ GROUP BY fk_album_id
 ORDER BY AVG(duration) DESC;
 
 -- 4. все исполнители, которые не выпустили альбомы в 2020 году;
-SELECT DISTINCT ar.name FROM artist ar
-JOIN album_artist aa ON ar.artist_id = aa.artist_id
-JOIN album al ON aa.album_id = al.album_id
-WHERE NOT al.year = 2020
-ORDER BY ar.name;
+SELECT name FROM artist
+WHERE name NOT IN (
+	SELECT ar.name FROM artist ar
+	JOIN album_artist aa ON ar.artist_id = aa.artist_id
+	JOIN album al ON aa.album_id = al.album_id
+	WHERE al.year = 2020
+);
 
 -- 5.названия сборников, в которых присутствует конкретный исполнитель (выберите сами);
-SELECT c.name FROM collection c
+SELECT DISTINCT c.name FROM collection c
 JOIN track_collection tc ON c.collection_id = tc.collection_id
 JOIN track t ON tc.track_id = t.track_id
 JOIN album al ON t.fk_album_id = al.album_id
 JOIN album_artist aa ON al.album_id = aa.album_id
 JOIN artist ar ON aa.artist_id = ar.artist_id
-WHERE ar.name LIKE 'artist2'
-GROUP BY c.name;
+WHERE ar.name LIKE 'artist2';
 
 -- 6.название альбомов, в которых присутствуют исполнители более 1 жанра;
 SELECT al.name FROM album al
@@ -54,15 +55,13 @@ JOIN track t ON al.album_id = t.fk_album_id
 WHERE t.duration = (SELECT MIN(duration) FROM track);
 
 -- 9. название альбомов, содержащих наименьшее количество треков
-SELECT DISTINCT al.name FROM album al
-LEFT JOIN track t ON t.fk_album_id = al.album_id
-WHERE t.fk_album_id IN (
-	SELECT fk_album_id FROM track
-	GROUP BY fk_album_id
-	HAVING COUNT(track_id) = (
-		SELECT COUNT(track_id) FROM track
-		GROUP BY fk_album_id
-		ORDER BY COUNT
-		LIMIT 1
-	)
+SELECT al.name, COUNT(t.name) FROM album al
+JOIN track t ON al.album_id = t.fk_album_id
+GROUP BY al.name
+HAVING COUNT(t.name) = (
+	SELECT COUNT(t.name) FROM album al
+	JOIN track t ON al.album_id = t.fk_album_id
+	GROUP BY al.name
+	ORDER BY COUNT(t.name)
+	LIMIT 1
 );

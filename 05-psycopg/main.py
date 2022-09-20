@@ -1,17 +1,16 @@
+import pprint
 import psycopg2
 
 
 def init_client_db(database_name, user_name, user_password):
-    conn = psycopg2.connect(
-        database=database_name, user=user_name, password=user_password
-    )
+    conn = psycopg2.connect(database=database_name, user=user_name, password=user_password)
     with conn.cursor() as cur:
-        cur.execute(
-            """
-                    DROP TABLE phone;
-                    DROP TABLE client;
-                """
-        )
+        # cur.execute(
+        #     """
+        #             DROP TABLE phone;
+        #             DROP TABLE client;
+        #         """
+        # )
         cur.execute(
             """
                     CREATE TABLE IF NOT EXISTS client(
@@ -189,7 +188,7 @@ def search_client(conn, search_params):
         cur.execute(
             """
                 SELECT name, surname, email, phone FROM client cl
-                JOIN phone ph ON cl.client_id = ph.client_id
+                FULL JOIN phone ph ON cl.client_id = ph.client_id
                 WHERE cl.client_id=%s;
                 """,
             (client_id,),
@@ -202,7 +201,7 @@ def search_client(conn, search_params):
             cur.execute(
                 """
                     SELECT cl.client_id FROM client cl
-                    JOIN phone ph ON cl.client_id = ph.client_id
+                    FULL JOIN phone ph ON cl.client_id = ph.client_id
                     WHERE name=%s;
                     """,
                 (searched_name,),
@@ -214,7 +213,7 @@ def search_client(conn, search_params):
             cur.execute(
                 """
                     SELECT cl.client_id FROM client cl
-                    JOIN phone ph ON cl.client_id = ph.client_id
+                    FULL JOIN phone ph ON cl.client_id = ph.client_id
                     WHERE surname=%s;
                     """,
                 (searched_surname,),
@@ -226,7 +225,7 @@ def search_client(conn, search_params):
             cur.execute(
                 """
                     SELECT cl.client_id FROM client cl
-                    JOIN phone ph ON cl.client_id = ph.client_id
+                    FULL JOIN phone ph ON cl.client_id = ph.client_id
                     WHERE email=%s;
                     """,
                 (searched_email,),
@@ -238,7 +237,7 @@ def search_client(conn, search_params):
             cur.execute(
                 """
                     SELECT cl.client_id FROM client cl
-                    JOIN phone ph ON cl.client_id = ph.client_id
+                    FULL JOIN phone ph ON cl.client_id = ph.client_id
                     WHERE phone=%s;
                     """,
                 (searched_phone,),
@@ -247,69 +246,97 @@ def search_client(conn, search_params):
             return _get_client_data()
 
 
-db_conn = init_client_db(
-    database_name="netology_db", user_name="postgres", user_password="P@ssw0rd"
-)
-add_client(db_conn, "Ivan", "Ivanov", "ivanov@mail.ru", "89991776361")
-add_client(db_conn, "Fedor", "Fedorov", "fedorov@mail.ru", "89991776364")
-add_client(db_conn, "Petr", "Petrov", "petrov@mail.ru", "89991776362", "89996203042")
-add_client(db_conn, "Vasiliy", "Vasiliev", "vasiliev@mail.ru")
-
-# with db_conn.cursor() as db_cur:
-#     db_cur.execute(
-#         """
-#                 SELECT * FROM client;
-#                 """
-#     )
-#     print(db_cur.fetchall())
-#
-#     db_cur.execute(
-#         """
-#                 SELECT * FROM phone;
-#                 """
-#     )
-#     print(db_cur.fetchall())
-
-add_client_phone(db_conn, "fedorov@mail.ru", "89991776365")
-add_client_phone(db_conn, "vasiliev@mail.ru", "89991776369")
-# change_client_data(
-#     db_conn,
-#     "petrov@mail.ru",
-#     {
-#         "name": [True, "Vladimir"],
-#         "surname": [True, "Vladimirov"],
-#         "email": [True, "vladimirov@mail.ru"],
-#         "phone": [True, ["776415"]],
-#     },
-# )
-# delete_client_phone(db_conn, "vasiliev@mail.ru")
-# delete_client(db_conn, "vasiliev@mail.ru")
-
-# with db_conn.cursor() as db_cur:
-#     db_cur.execute(
-#         """
-#                 SELECT * FROM client;
-#                 """
-#     )
-#     print(db_cur.fetchall())
-#
-#     db_cur.execute(
-#         """
-#                 SELECT * FROM phone;
-#                 """
-#     )
-#     print(db_cur.fetchall())
+def show_clients_info(conn):
+    with conn.cursor() as cur:
+        cur.execute(
+            """
+                SELECT cl.client_id, name, surname, email, phone FROM client cl
+                FULL JOIN phone ph ON cl.client_id = ph.client_id; 
+                """
+        )
+        pprint.pprint(cur.fetchall())
+        print()
 
 
-result1 = search_client(
-    db_conn,
-    {
-        "name": [False, None],
-        "surname": [False, None],
-        "email": [True, "fedorov@mail.ru"],
-        "phone": [False, None],
-    },
-)
-print(result1)
+if __name__ == "__main__":
+    # 1. Функция, создающая структуру БД (таблицы)
+    db_conn = init_client_db(database_name="netology_db", user_name="postgres", user_password="P@ssw0rd")
 
-db_conn.close()
+    print("1. Функция, создающая структуру БД (таблицы)")
+    show_clients_info(db_conn)
+
+    # 2. Функция, позволяющая добавить нового клиента
+    add_client(db_conn, "Ivan", "Ivanov", "ivanov@mail.ru", "89991773361")
+    add_client(db_conn, "Petr", "Petrov", "petrov@mail.ru", "89991771362", "89996201042")
+    add_client(db_conn, "Vasily", "Vasiliev", "vasiliev@mail.ru")
+
+    print("2. Функция, позволяющая добавить нового клиента")
+    show_clients_info(db_conn)
+
+    # 3. Функция, позволяющая добавить телефон для существующего клиента
+    add_client_phone(db_conn, "ivanov@mail.ru", "89991773360")
+    add_client_phone(db_conn, "vasiliev@mail.ru", "89991776369")
+    print("3. Функция, позволяющая добавить телефон для существующего клиента")
+    show_clients_info(db_conn)
+
+    # 4. Функция, позволяющая изменить данные о клиенте
+    change_client_data(
+        db_conn,
+        "vasiliev@mail.ru",
+        {
+            "name": [True, "Vladimir"],
+            "surname": [False, None],
+            "email": [True, "vladimir.vasiliev@mail.ru"],
+            "phone": [True, ["89991776000", "25-17-00"]],
+        },
+    )
+    print("4. Функция, позволяющая изменить данные о клиенте")
+    show_clients_info(db_conn)
+
+    # 5. Функция, позволяющая удалить телефон для существующего клиента
+    delete_client_phone(db_conn, "ivanov@mail.ru")
+    print("5. Функция, позволяющая удалить телефон для существующего клиента")
+    show_clients_info(db_conn)
+
+    # 6. Функция, позволяющая удалить существующего клиента
+    delete_client(db_conn, "vladimir.vasiliev@mail.ru")
+    print("6. Функция, позволяющая удалить существующего клиента")
+    show_clients_info(db_conn)
+
+    # 7. Функция, позволяющая найти клиента по его данным (имени, фамилии, email-у или телефону)
+    print("7. Функция, позволяющая найти клиента по его данным (имени, фамилии, email-у или телефону)")
+    print("Поиск по телефону")
+    search_result = search_client(
+        db_conn,
+        {
+            "name": [False, None],
+            "surname": [False, None],
+            "email": [False, None],
+            "phone": [True, "89991771362"],
+        },
+    )
+    pprint.pprint(search_result)
+    print("Поиск по имени")
+    search_result = search_client(
+        db_conn,
+        {
+            "name": [True, "Ivan"],
+            "surname": [False, None],
+            "email": [False, None],
+            "phone": [False, None],
+        },
+    )
+    pprint.pprint(search_result)
+    print("Поиск по email")
+    search_result = search_client(
+        db_conn,
+        {
+            "name": [False, None],
+            "surname": [False, None],
+            "email": [True, "petrov@mail.ru"],
+            "phone": [False, None],
+        },
+    )
+    pprint.pprint(search_result)
+
+    db_conn.close()

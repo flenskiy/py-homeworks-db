@@ -6,12 +6,12 @@ def init_client_db(database_name, user_name, user_password):
         database=database_name, user=user_name, password=user_password
     )
     with conn.cursor() as cur:
-        # cur.execute(
-        #     """
-        #             DROP TABLE phone;
-        #             DROP TABLE client;
-        #         """
-        # )
+        cur.execute(
+            """
+                    DROP TABLE phone;
+                    DROP TABLE client;
+                """
+        )
         cur.execute(
             """
                     CREATE TABLE IF NOT EXISTS client(
@@ -83,7 +83,14 @@ def add_client_phone(conn, email, *phones):
 
 
 def change_client_data(conn, email, data):
-    # data = {'name': [flag,name], 'surname': [flag, surname], 'email': [flag, email], 'phone': [flag, [phone_1, ..., ]}
+    """
+    data = {
+                'name': [flag,name],
+                'surname': [flag, surname],
+                'email': [flag, email],
+                'phone': [flag, [phone_1, ...,]
+            }
+    """
     mail_check_result, client_id = check_client_email(conn, email)
     if mail_check_result:
         with conn.cursor() as cur:
@@ -164,6 +171,82 @@ def delete_client(conn, email):
             return client_id
 
 
+def search_client(conn, search_params):
+    """
+    search_params = {
+                        'name': [flag, name],
+                        'surname': [flag, surname],
+                        'email': [flag, email],
+                        'phone': [flag, phone]
+                    }
+    """
+
+    def _get_client_data():
+        if not result:
+            return None
+        else:
+            client_id = result[0][0]
+        cur.execute(
+            """
+                SELECT name, surname, email, phone FROM client cl
+                JOIN phone ph ON cl.client_id = ph.client_id
+                WHERE cl.client_id=%s;
+                """,
+            (client_id,),
+        )
+        return cur.fetchall()
+
+    with conn.cursor() as cur:
+        if search_params["name"][0]:
+            searched_name = search_params["name"][1]
+            cur.execute(
+                """
+                    SELECT cl.client_id FROM client cl
+                    JOIN phone ph ON cl.client_id = ph.client_id
+                    WHERE name=%s;
+                    """,
+                (searched_name,),
+            )
+            result = cur.fetchall()
+            return _get_client_data()
+        if search_params["surname"][0]:
+            searched_surname = search_params["surname"][1]
+            cur.execute(
+                """
+                    SELECT cl.client_id FROM client cl
+                    JOIN phone ph ON cl.client_id = ph.client_id
+                    WHERE surname=%s;
+                    """,
+                (searched_surname,),
+            )
+            result = cur.fetchall()
+            return _get_client_data()
+        if search_params["email"][0]:
+            searched_email = search_params["email"][1]
+            cur.execute(
+                """
+                    SELECT cl.client_id FROM client cl
+                    JOIN phone ph ON cl.client_id = ph.client_id
+                    WHERE email=%s;
+                    """,
+                (searched_email,),
+            )
+            result = cur.fetchall()
+            return _get_client_data()
+        if search_params["phone"][0]:
+            searched_phone = search_params["phone"][1]
+            cur.execute(
+                """
+                    SELECT cl.client_id FROM client cl
+                    JOIN phone ph ON cl.client_id = ph.client_id
+                    WHERE phone=%s;
+                    """,
+                (searched_phone,),
+            )
+            result = cur.fetchall()
+            return _get_client_data()
+
+
 db_conn = init_client_db(
     database_name="netology_db", user_name="postgres", user_password="P@ssw0rd"
 )
@@ -172,49 +255,61 @@ add_client(db_conn, "Fedor", "Fedorov", "fedorov@mail.ru", "89991776364")
 add_client(db_conn, "Petr", "Petrov", "petrov@mail.ru", "89991776362", "89996203042")
 add_client(db_conn, "Vasiliy", "Vasiliev", "vasiliev@mail.ru")
 
-with db_conn.cursor() as db_cur:
-    db_cur.execute(
-        """
-                SELECT * FROM client;
-                """
-    )
-    print(db_cur.fetchall())
-
-    db_cur.execute(
-        """
-                SELECT * FROM phone;
-                """
-    )
-    print(db_cur.fetchall())
+# with db_conn.cursor() as db_cur:
+#     db_cur.execute(
+#         """
+#                 SELECT * FROM client;
+#                 """
+#     )
+#     print(db_cur.fetchall())
+#
+#     db_cur.execute(
+#         """
+#                 SELECT * FROM phone;
+#                 """
+#     )
+#     print(db_cur.fetchall())
 
 add_client_phone(db_conn, "fedorov@mail.ru", "89991776365")
 add_client_phone(db_conn, "vasiliev@mail.ru", "89991776369")
-change_client_data(
+# change_client_data(
+#     db_conn,
+#     "petrov@mail.ru",
+#     {
+#         "name": [True, "Vladimir"],
+#         "surname": [True, "Vladimirov"],
+#         "email": [True, "vladimirov@mail.ru"],
+#         "phone": [True, ["776415"]],
+#     },
+# )
+# delete_client_phone(db_conn, "vasiliev@mail.ru")
+# delete_client(db_conn, "vasiliev@mail.ru")
+
+# with db_conn.cursor() as db_cur:
+#     db_cur.execute(
+#         """
+#                 SELECT * FROM client;
+#                 """
+#     )
+#     print(db_cur.fetchall())
+#
+#     db_cur.execute(
+#         """
+#                 SELECT * FROM phone;
+#                 """
+#     )
+#     print(db_cur.fetchall())
+
+
+result1 = search_client(
     db_conn,
-    "petrov@mail.ru",
     {
-        "name": [True, "Vladimir"],
-        "surname": [True, "Vladimirov"],
-        "email": [True, "vladimirov@mail.ru"],
-        "phone": [True, ["776415"]],
+        "name": [False, None],
+        "surname": [False, None],
+        "email": [True, "fedorov@mail.ru"],
+        "phone": [False, None],
     },
 )
-delete_client_phone(db_conn, "vasiliev@mail.ru")
-delete_client(db_conn, "vasiliev@mail.ru")
-
-with db_conn.cursor() as db_cur:
-    db_cur.execute(
-        """
-                SELECT * FROM client;
-                """
-    )
-    print(db_cur.fetchall())
-
-    db_cur.execute(
-        """
-                SELECT * FROM phone;
-                """
-    )
-    print(db_cur.fetchall())
+print(result1)
 
 db_conn.close()

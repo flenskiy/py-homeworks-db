@@ -37,7 +37,7 @@ class Stock(Base):
     count = sq.Column(sq.Integer, nullable=False)
 
     book = relationship(Book, backref="stock")
-    shop = relationship(Book, backref="stock")
+    shop = relationship(Shop, backref="stock")
 
 
 class Sale(Base):

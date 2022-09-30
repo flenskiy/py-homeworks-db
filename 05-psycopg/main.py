@@ -3,7 +3,9 @@ import psycopg2
 
 
 def init_client_db(database_name, user_name, user_password):
-    conn = psycopg2.connect(database=database_name, user=user_name, password=user_password)
+    conn = psycopg2.connect(
+        database=database_name, user=user_name, password=user_password
+    )
     with conn.cursor() as cur:
         # cur.execute(
         #     """
@@ -260,14 +262,18 @@ def show_clients_info(conn):
 
 if __name__ == "__main__":
     # 1. Функция, создающая структуру БД (таблицы)
-    db_conn = init_client_db(database_name="netology_db", user_name="postgres", user_password="P@ssw0rd")
+    db_conn = init_client_db(
+        database_name="netology_db", user_name="postgres", user_password="P@ssw0rd"
+    )
 
     print("1. Функция, создающая структуру БД (таблицы)")
     show_clients_info(db_conn)
 
     # 2. Функция, позволяющая добавить нового клиента
     add_client(db_conn, "Ivan", "Ivanov", "ivanov@mail.ru", "89991773361")
-    add_client(db_conn, "Petr", "Petrov", "petrov@mail.ru", "89991771362", "89996201042")
+    add_client(
+        db_conn, "Petr", "Petrov", "petrov@mail.ru", "89991771362", "89996201042"
+    )
     add_client(db_conn, "Vasily", "Vasiliev", "vasiliev@mail.ru")
 
     print("2. Функция, позволяющая добавить нового клиента")
@@ -304,7 +310,9 @@ if __name__ == "__main__":
     show_clients_info(db_conn)
 
     # 7. Функция, позволяющая найти клиента по его данным (имени, фамилии, email-у или телефону)
-    print("7. Функция, позволяющая найти клиента по его данным (имени, фамилии, email-у или телефону)")
+    print(
+        "7. Функция, позволяющая найти клиента по его данным (имени, фамилии, email-у или телефону)"
+    )
     print("Поиск по телефону")
     search_result = search_client(
         db_conn,

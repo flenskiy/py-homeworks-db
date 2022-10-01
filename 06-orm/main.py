@@ -32,14 +32,26 @@ try:
     publisher_id = int(user_input)
 except ValueError:
     publisher_name = user_input
-result = (
-    session.query(Publisher)
-    .filter(
-        (Publisher.name.ilike(f"{publisher_name}") | (Publisher.id == publisher_id))
-    )
-    .first()
-)
-print(result)
+
+for shop in (
+    session.query(Shop)
+    .join(Stock.shop)
+    .join(Stock.books)
+    .join(Book.publisher)
+    .filter(Publisher.name.ilike(f"{publisher_name}") | (Publisher.id == publisher_id))
+    .all()
+):
+    print(shop)
+
+
+# result = (
+#     session.query(Publisher)
+#     .filter(
+#         (Publisher.name.ilike(f"{publisher_name}") | (Publisher.id == publisher_id))
+#     )
+#     .first()
+# )
+# print(result)
 
 # for item in session.query(Publisher).filter(Publisher.name.ilike(f"{publisher}")).all():
 #     print(item)
